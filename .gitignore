@@ -37,3 +37,18 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# IntelliJ
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Java
+*.class
+out/
+
+# OS
+.DS_Store
+Thumbs.db
