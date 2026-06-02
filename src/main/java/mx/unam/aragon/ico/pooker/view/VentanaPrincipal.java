@@ -490,6 +490,11 @@ public class VentanaPrincipal extends JFrame {
      */
     private void cargarTabla() {
 
+        // Limpiar selección primero para evitar que el
+        // ListSelectionListener dispare seleccionarUsuario()
+        // con índices inválidos mientras se reconstruye la tabla
+        tablaUsuarios.clearSelection();
+
         modeloTabla.setRowCount(0);
 
         for (UsuarioCasino usuario :
@@ -541,7 +546,8 @@ public class VentanaPrincipal extends JFrame {
         filaSeleccionada =
                 tablaUsuarios.getSelectedRow();
 
-        if (filaSeleccionada >= 0) {
+        if (filaSeleccionada >= 0 &&
+                filaSeleccionada < controller.getListaUsuarios().size()) {
 
             UsuarioCasino usuario =
                     controller.getListaUsuarios()
