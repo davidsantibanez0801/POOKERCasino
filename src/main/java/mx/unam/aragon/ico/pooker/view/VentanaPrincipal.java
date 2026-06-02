@@ -6,7 +6,6 @@ import mx.unam.aragon.ico.pooker.model.UsuarioCasino;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,12 +55,12 @@ public class VentanaPrincipal extends JFrame {
     // ==========================
 
     private UsuarioCasino usuarioActual;
+
     // ==========================
     // LISTA DE USUARIOS
     // ==========================
 
     private List<UsuarioCasino> listaUsuarios;
-
     private int idActual = 1;
     private int filaSeleccionada = -1;
 
@@ -71,8 +70,8 @@ public class VentanaPrincipal extends JFrame {
      * @param usuario usuario seleccionado
      * desde LoginView
      */
-    public VentanaPrincipal(UsuarioCasino usuario) {
 
+    public VentanaPrincipal(UsuarioCasino usuario) {
         this.usuarioActual = usuario;
 
         // Cargar usuarios guardados
@@ -257,6 +256,7 @@ public class VentanaPrincipal extends JFrame {
 
         btnRegistrar.addActionListener(
                 e -> registrarUsuario()
+
         );
 
         btnLimpiar.addActionListener(
@@ -390,6 +390,14 @@ public class VentanaPrincipal extends JFrame {
                     Integer.parseInt(
                             txtEdad.getText()
                     );
+
+            if (edad < 18) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "El usuario debe ser mayor de 18 años para registrarse."
+                );
+                return;
+            }
 
             String juego =
                     comboJuego
@@ -633,11 +641,21 @@ public class VentanaPrincipal extends JFrame {
                     txtApellido.getText()
             );
 
+            if (usuario.getEdad() < 18) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "El usuario debe ser mayor de 18 años para registrarse."
+                );
+                return;
+            }
+
             usuario.setEdad(
                     Integer.parseInt(
                             txtEdad.getText()
                     )
             );
+
+
 
             usuario.setJuegoFavorito(
                     comboJuego.getSelectedItem()
