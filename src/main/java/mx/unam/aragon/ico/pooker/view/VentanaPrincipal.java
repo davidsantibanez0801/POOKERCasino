@@ -1,7 +1,6 @@
 package mx.unam.aragon.ico.pooker.view;
-import mx.unam.aragon.ico.pooker.persistence.ArchivoManager;
+import mx.unam.aragon.ico.pooker.controller.UsuarioController;
 import mx.unam.aragon.ico.pooker.model.UsuarioCasino;
-
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -57,11 +56,10 @@ public class VentanaPrincipal extends JFrame {
     private UsuarioCasino usuarioActual;
 
     // ==========================
-    // LISTA DE USUARIOS
+    // CONTROLLER
     // ==========================
 
-    private List<UsuarioCasino> listaUsuarios;
-    private int idActual = 1;
+    private UsuarioController controller;
     private int filaSeleccionada = -1;
 
     /**
@@ -74,18 +72,8 @@ public class VentanaPrincipal extends JFrame {
     public VentanaPrincipal(UsuarioCasino usuario) {
         this.usuarioActual = usuario;
 
-        // Cargar usuarios guardados
-        listaUsuarios =
-                ArchivoManager.cargarUsuarios();
-
-        // Ajustar ID automático
-        if (!listaUsuarios.isEmpty()) {
-
-            idActual =
-                    listaUsuarios
-                            .get(listaUsuarios.size() - 1)
-                            .getId() + 1;
-        }
+        // Inicializar controller (carga usuarios internamente)
+        controller = new UsuarioController();
 
         configurarVentana();
         inicializarComponentes();
@@ -256,7 +244,6 @@ public class VentanaPrincipal extends JFrame {
 
         btnRegistrar.addActionListener(
                 e -> registrarUsuario()
-
         );
 
         btnLimpiar.addActionListener(
@@ -380,101 +367,40 @@ public class VentanaPrincipal extends JFrame {
 
         try {
 
-            String nombre =
-                    txtNombre.getText();
-
-            String apellido =
-                    txtApellido.getText();
-
-            int edad =
-                    Integer.parseInt(
-                            txtEdad.getText()
-                    );
-
-            if (edad < 18) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "El usuario debe ser mayor de 18 años para registrarse."
-                );
-                return;
-            }
-
-            String juego =
-                    comboJuego
-                            .getSelectedItem()
-                            .toString();
-
-            String horario =
-                    comboHorario
-                            .getSelectedItem()
-                            .toString();
+            String nombre = txtNombre.getText();
+            String apellido = txtApellido.getText();
+            int edad = Integer.parseInt(txtEdad.getText());
+            String juego = comboJuego.getSelectedItem().toString();
+            String horario = comboHorario.getSelectedItem().toString();
 
             String experiencia = "";
-
-            if (rbPrincipiante.isSelected()) {
-                experiencia = "Principiante";
-            }
-
-            if (rbIntermedio.isSelected()) {
-                experiencia = "Intermedio";
-            }
-
-            if (rbExperto.isSelected()) {
-                experiencia = "Experto";
-            }
+            if (rbPrincipiante.isSelected()) experiencia = "Principiante";
+            if (rbIntermedio.isSelected())   experiencia = "Intermedio";
+            if (rbExperto.isSelected())      experiencia = "Experto";
 
             String servicios = "";
+            if (cbVip.isSelected())     servicios += "VIP ";
+            if (cbBebidas.isSelected()) servicios += "Bebidas ";
+            if (cbTorneos.isSelected()) servicios += "Torneos";
 
-            if (cbVip.isSelected()) {
-                servicios += "VIP ";
-            }
+            String notas = txtNotas.getText();
 
-            if (cbBebidas.isSelected()) {
-                servicios += "Bebidas ";
-            }
-
-            if (cbTorneos.isSelected()) {
-                servicios += "Torneos";
-            }
-
-            String notas =
-                    txtNotas.getText();
-
-            UsuarioCasino usuario =
-                    new UsuarioCasino(
-                            idActual++,
-                            nombre,
-                            apellido,
-                            edad,
-                            juego,
-                            experiencia,
-                            horario,
-                            servicios,
-                            notas
-                    );
-
-            listaUsuarios.add(usuario);
-
-            ArchivoManager
-                    .guardarUsuarios(
-                            listaUsuarios
-                    );
-
-            cargarTabla();
-
-            limpiarFormulario();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Usuario registrado."
+            String resultado = controller.registrarUsuario(
+                    nombre, apellido, edad, juego,
+                    experiencia, horario, servicios, notas
             );
 
-        } catch (Exception e) {
+            if (resultado.startsWith("ERROR:")) {
+                JOptionPane.showMessageDialog(this, resultado.substring(6));
+            } else {
+                cargarTabla();
+                limpiarFormulario();
+                JOptionPane.showMessageDialog(this, resultado.substring(3));
+            }
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Datos inválidos."
-            );
+        } catch (NumberFormatException e) {
+
+            JOptionPane.showMessageDialog(this, "La edad debe ser un número válido.");
         }
     }
 
@@ -486,7 +412,7 @@ public class VentanaPrincipal extends JFrame {
         modeloTabla.setRowCount(0);
 
         for (UsuarioCasino usuario :
-                listaUsuarios) {
+                controller.getListaUsuarios()) {
 
             modeloTabla.addRow(
                     new Object[]{
@@ -537,9 +463,8 @@ public class VentanaPrincipal extends JFrame {
         if (filaSeleccionada >= 0) {
 
             UsuarioCasino usuario =
-                    listaUsuarios.get(
-                            filaSeleccionada
-                    );
+                    controller.getListaUsuarios()
+                            .get(filaSeleccionada);
 
             txtNombre.setText(
                     usuario.getNombre()
@@ -617,117 +542,46 @@ public class VentanaPrincipal extends JFrame {
     private void modificarUsuario() {
 
         if (filaSeleccionada < 0) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecciona un usuario."
-            );
-
+            JOptionPane.showMessageDialog(this, "Selecciona un usuario.");
             return;
         }
 
         try {
 
-            UsuarioCasino usuario =
-                    listaUsuarios.get(
-                            filaSeleccionada
-                    );
+            String nombre = txtNombre.getText();
+            String apellido = txtApellido.getText();
+            int edad = Integer.parseInt(txtEdad.getText());
+            String juego = comboJuego.getSelectedItem().toString();
+            String horario = comboHorario.getSelectedItem().toString();
 
-            usuario.setNombre(
-                    txtNombre.getText()
-            );
-
-            usuario.setApellido(
-                    txtApellido.getText()
-            );
-
-            if (usuario.getEdad() < 18) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "El usuario debe ser mayor de 18 años para registrarse."
-                );
-                return;
-            }
-
-            usuario.setEdad(
-                    Integer.parseInt(
-                            txtEdad.getText()
-                    )
-            );
-
-
-
-            usuario.setJuegoFavorito(
-                    comboJuego.getSelectedItem()
-                            .toString()
-            );
-
-            usuario.setHorario(
-                    comboHorario.getSelectedItem()
-                            .toString()
-            );
-
-            // Experiencia
-            if (rbPrincipiante.isSelected()) {
-                usuario.setExperiencia(
-                        "Principiante"
-                );
-            }
-
-            if (rbIntermedio.isSelected()) {
-                usuario.setExperiencia(
-                        "Intermedio"
-                );
-            }
-
-            if (rbExperto.isSelected()) {
-                usuario.setExperiencia(
-                        "Experto"
-                );
-            }
+            String experiencia = "";
+            if (rbPrincipiante.isSelected()) experiencia = "Principiante";
+            if (rbIntermedio.isSelected())   experiencia = "Intermedio";
+            if (rbExperto.isSelected())      experiencia = "Experto";
 
             String servicios = "";
+            if (cbVip.isSelected())     servicios += "VIP ";
+            if (cbBebidas.isSelected()) servicios += "Bebidas ";
+            if (cbTorneos.isSelected()) servicios += "Torneos";
 
-            if (cbVip.isSelected()) {
-                servicios += "VIP ";
+            String notas = txtNotas.getText();
+
+            String resultado = controller.modificarUsuario(
+                    filaSeleccionada, nombre, apellido, edad,
+                    juego, experiencia, horario, servicios, notas
+            );
+
+            if (resultado.startsWith("ERROR:")) {
+                JOptionPane.showMessageDialog(this, resultado.substring(6));
+            } else {
+                cargarTabla();
+                limpiarFormulario();
+                JOptionPane.showMessageDialog(this, resultado.substring(3));
             }
 
-            if (cbBebidas.isSelected()) {
-                servicios += "Bebidas ";
-            }
+        } catch (NumberFormatException e) {
 
-            if (cbTorneos.isSelected()) {
-                servicios += "Torneos";
-            }
-
-            usuario.setServicios(
-                    servicios
-            );
-
-            usuario.setNotas(
-                    txtNotas.getText()
-            );
-
-            ArchivoManager
-                    .guardarUsuarios(
-                            listaUsuarios
-                    );
-
-            cargarTabla();
-
-            limpiarFormulario();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Usuario modificado."
-            );
-
-        } catch (Exception e) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Error al modificar."
-            );
+            JOptionPane.showMessageDialog(this, "La edad debe ser un número válido.");
         }
     }
 
@@ -737,43 +591,28 @@ public class VentanaPrincipal extends JFrame {
     private void eliminarUsuario() {
 
         if (filaSeleccionada < 0) {
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecciona un usuario."
-            );
-
+            JOptionPane.showMessageDialog(this, "Selecciona un usuario.");
             return;
         }
 
-        int confirmacion =
-                JOptionPane.showConfirmDialog(
-                        this,
-                        "¿Eliminar usuario?",
-                        "Confirmación",
-                        JOptionPane.YES_NO_OPTION
-                );
+        int confirmacion = JOptionPane.showConfirmDialog(
+                this,
+                "¿Eliminar usuario?",
+                "Confirmación",
+                JOptionPane.YES_NO_OPTION
+        );
 
-        if (confirmacion ==
-                JOptionPane.YES_OPTION) {
+        if (confirmacion == JOptionPane.YES_OPTION) {
 
-            listaUsuarios.remove(
-                    filaSeleccionada
-            );
+            String resultado = controller.eliminarUsuario(filaSeleccionada);
 
-            ArchivoManager
-                    .guardarUsuarios(
-                            listaUsuarios
-                    );
-
-            cargarTabla();
-
-            limpiarFormulario();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Usuario eliminado."
-            );
+            if (resultado.startsWith("ERROR:")) {
+                JOptionPane.showMessageDialog(this, resultado.substring(6));
+            } else {
+                cargarTabla();
+                limpiarFormulario();
+                JOptionPane.showMessageDialog(this, resultado.substring(3));
+            }
         }
     }
 
