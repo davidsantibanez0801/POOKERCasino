@@ -253,7 +253,7 @@ public class VentanaPrincipal extends JFrame {
 
         // ==========================
         // EVENTOS BOTONES
-            // ==========================
+        // ==========================
 
         btnRegistrar.addActionListener(
                 e -> registrarUsuario()
