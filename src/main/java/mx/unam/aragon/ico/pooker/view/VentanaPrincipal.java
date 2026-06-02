@@ -50,6 +50,13 @@ public class VentanaPrincipal extends JFrame {
     private JLabel lblReloj;
 
     // ==========================
+    // PANELES (para JColorChooser)
+    // ==========================
+
+    private JPanel panelPrincipal;
+    private JScrollPane scrollTabla;
+
+    // ==========================
     // TABLA
     // ==========================
 
@@ -117,6 +124,7 @@ public class VentanaPrincipal extends JFrame {
         JPanel panelPrincipal = new JPanel();
         panelPrincipal.setLayout(new BorderLayout());
         panelPrincipal.setBackground(new Color(25, 25, 25));
+        this.panelPrincipal = panelPrincipal;
 
         // ==========================
         // PANEL NORTE (título + reloj)
@@ -353,6 +361,7 @@ public class VentanaPrincipal extends JFrame {
 
         JScrollPane scrollTabla =
                 new JScrollPane(tablaUsuarios);
+        this.scrollTabla = scrollTabla;
 
         // ==========================
         // AGREGAR PANELES
@@ -404,7 +413,28 @@ public class VentanaPrincipal extends JFrame {
         menuArchivo.addSeparator();
         menuArchivo.add(itemSalir);
 
+        // Menú Vista con JColorChooser
+        JMenu menuVista = new JMenu("Vista");
+
+        JMenuItem itemColorFondo =
+                new JMenuItem("Color de fondo...");
+
+        itemColorFondo.addActionListener(
+                e -> cambiarColorFondo()
+        );
+
+        JMenuItem itemColorTabla =
+                new JMenuItem("Color de tabla...");
+
+        itemColorTabla.addActionListener(
+                e -> cambiarColorTabla()
+        );
+
+        menuVista.add(itemColorFondo);
+        menuVista.add(itemColorTabla);
+
         barraMenu.add(menuArchivo);
+        barraMenu.add(menuVista);
 
         setJMenuBar(barraMenu);
 
@@ -770,6 +800,52 @@ public class VentanaPrincipal extends JFrame {
                     this,
                     "Usuarios cargados desde:\n" + ruta
             );
+        }
+    }
+
+    /**
+     * Abre JColorChooser para cambiar
+     * el color de fondo del panel principal.
+     */
+    private void cambiarColorFondo() {
+
+        Color colorActual = panelPrincipal.getBackground();
+
+        Color colorElegido = JColorChooser.showDialog(
+                this,
+                "Elige el color de fondo",
+                colorActual
+        );
+
+        if (colorElegido != null) {
+            panelPrincipal.setBackground(colorElegido);
+            for (java.awt.Component c :
+                    panelPrincipal.getComponents()) {
+                if (c instanceof JPanel) {
+                    c.setBackground(colorElegido);
+                }
+            }
+        }
+    }
+
+    /**
+     * Abre JColorChooser para cambiar
+     * el color de fondo de la tabla.
+     */
+    private void cambiarColorTabla() {
+
+        Color colorActual = tablaUsuarios.getBackground();
+
+        Color colorElegido = JColorChooser.showDialog(
+                this,
+                "Elige el color de la tabla",
+                colorActual
+        );
+
+        if (colorElegido != null) {
+            tablaUsuarios.setBackground(colorElegido);
+            scrollTabla.getViewport()
+                    .setBackground(colorElegido);
         }
     }
 
