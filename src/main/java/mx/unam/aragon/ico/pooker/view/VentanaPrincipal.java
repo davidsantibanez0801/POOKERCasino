@@ -43,6 +43,12 @@ public class VentanaPrincipal extends JFrame {
     private JButton btnLimpiar;
 
     // ==========================
+    // RELOJ
+    // ==========================
+
+    private JLabel lblReloj;
+
+    // ==========================
     // TABLA
     // ==========================
 
@@ -112,8 +118,13 @@ public class VentanaPrincipal extends JFrame {
         panelPrincipal.setBackground(new Color(25, 25, 25));
 
         // ==========================
-        // TÍTULO
+        // PANEL NORTE (título + reloj)
         // ==========================
+
+        JPanel panelNorte = new JPanel(
+                new BorderLayout()
+        );
+        panelNorte.setBackground(new Color(25, 25, 25));
 
         JLabel lblTitulo = new JLabel(
                 "♠ POOKER Casino ♠",
@@ -126,10 +137,30 @@ public class VentanaPrincipal extends JFrame {
 
         lblTitulo.setForeground(Color.YELLOW);
 
+        lblReloj = new JLabel(
+                "00:00:00",
+                SwingConstants.RIGHT
+        );
+
+        lblReloj.setFont(
+                new Font("Arial", Font.BOLD, 18)
+        );
+
+        lblReloj.setForeground(Color.GREEN);
+        lblReloj.setBorder(
+                BorderFactory.createEmptyBorder(0, 0, 0, 15)
+        );
+
+        panelNorte.add(lblTitulo, BorderLayout.CENTER);
+        panelNorte.add(lblReloj, BorderLayout.EAST);
+
         panelPrincipal.add(
-                lblTitulo,
+                panelNorte,
                 BorderLayout.NORTH
         );
+
+        // Iniciar hilo del reloj
+        iniciarReloj();
 
         // ==========================
         // PANEL CENTRAL
@@ -583,6 +614,41 @@ public class VentanaPrincipal extends JFrame {
 
             JOptionPane.showMessageDialog(this, "La edad debe ser un número válido.");
         }
+    }
+
+    /**
+     * Inicia el hilo del reloj.
+     * Actualiza lblReloj cada segundo
+     * con la hora actual del sistema.
+     */
+    private void iniciarReloj() {
+
+        Thread hiloReloj = new Thread(() -> {
+
+            while (true) {
+
+                // Obtener hora actual
+                String hora = new java.text.SimpleDateFormat(
+                        "HH:mm:ss"
+                ).format(new java.util.Date());
+
+                // Actualizar el label en el hilo de Swing
+                SwingUtilities.invokeLater(() ->
+                        lblReloj.setText(hora)
+                );
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+
+        // El hilo termina cuando se cierra la app
+        hiloReloj.setDaemon(true);
+        hiloReloj.start();
     }
 
     /**
