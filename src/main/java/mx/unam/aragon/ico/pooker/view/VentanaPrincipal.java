@@ -1,6 +1,7 @@
 package mx.unam.aragon.ico.pooker.view;
 import mx.unam.aragon.ico.pooker.controller.UsuarioController;
 import mx.unam.aragon.ico.pooker.model.UsuarioCasino;
+import mx.unam.aragon.ico.pooker.persistence.ArchivoManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -375,6 +376,22 @@ public class VentanaPrincipal extends JFrame {
         JMenu menuArchivo =
                 new JMenu("Archivo");
 
+        // Guardar como...
+        JMenuItem itemGuardarComo =
+                new JMenuItem("Guardar como...");
+
+        itemGuardarComo.addActionListener(
+                e -> guardarComo()
+        );
+
+        // Cargar desde...
+        JMenuItem itemCargarDesde =
+                new JMenuItem("Cargar desde...");
+
+        itemCargarDesde.addActionListener(
+                e -> cargarDesde()
+        );
+
         JMenuItem itemSalir =
                 new JMenuItem("Salir");
 
@@ -382,6 +399,9 @@ public class VentanaPrincipal extends JFrame {
                 e -> System.exit(0)
         );
 
+        menuArchivo.add(itemGuardarComo);
+        menuArchivo.add(itemCargarDesde);
+        menuArchivo.addSeparator();
         menuArchivo.add(itemSalir);
 
         barraMenu.add(menuArchivo);
@@ -679,6 +699,77 @@ public class VentanaPrincipal extends JFrame {
                 limpiarFormulario();
                 JOptionPane.showMessageDialog(this, resultado.substring(3));
             }
+        }
+    }
+
+    /**
+     * Abre JFileChooser para elegir dónde
+     * guardar el archivo CSV.
+     */
+    private void guardarComo() {
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Guardar usuarios como...");
+        fileChooser.setSelectedFile(
+                new java.io.File("usuarios.csv")
+        );
+
+        int opcion = fileChooser.showSaveDialog(this);
+
+        if (opcion == JFileChooser.APPROVE_OPTION) {
+
+            String ruta = fileChooser
+                    .getSelectedFile()
+                    .getAbsolutePath();
+
+            if (!ruta.endsWith(".csv")) {
+                ruta += ".csv";
+            }
+
+            ArchivoManager.guardarUsuariosEn(
+                    controller.getListaUsuarios(),
+                    ruta
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Archivo guardado en:\n" + ruta
+            );
+        }
+    }
+
+    /**
+     * Abre JFileChooser para elegir un archivo
+     * CSV y cargar los usuarios desde él.
+     */
+    private void cargarDesde() {
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setDialogTitle("Cargar usuarios desde...");
+        fileChooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Archivos CSV (*.csv)", "csv"
+                )
+        );
+
+        int opcion = fileChooser.showOpenDialog(this);
+
+        if (opcion == JFileChooser.APPROVE_OPTION) {
+
+            String ruta = fileChooser
+                    .getSelectedFile()
+                    .getAbsolutePath();
+
+            controller.cargarDesde(ruta);
+
+            cargarTabla();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Usuarios cargados desde:\n" + ruta
+            );
         }
     }
 

@@ -19,6 +19,45 @@ public class ArchivoManager {
     private static final String ARCHIVO = "usuarios.csv";
 
     /**
+     * Guarda usuarios en una ruta personalizada.
+     *
+     * @param usuarios Lista de usuarios
+     * @param ruta     Ruta del archivo destino
+     */
+    public static void guardarUsuariosEn(
+            List<UsuarioCasino> usuarios,
+            String ruta) {
+
+        try (BufferedWriter writer =
+                     new BufferedWriter(new FileWriter(ruta))) {
+
+            for (UsuarioCasino usuario : usuarios) {
+
+                writer.write(
+                        usuario.getId() + "," +
+                                usuario.getNombre() + "," +
+                                usuario.getApellido() + "," +
+                                usuario.getEdad() + "," +
+                                usuario.getJuegoFavorito() + "," +
+                                usuario.getExperiencia() + "," +
+                                usuario.getHorario() + "," +
+                                usuario.getServicios() + "," +
+                                usuario.getNotas()
+                );
+
+                writer.newLine();
+            }
+
+            System.out.println("Archivo guardado en: " + ruta);
+
+        } catch (IOException e) {
+
+            System.out.println("Error al guardar archivo.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Metodo para guardar usuarios
      * dentro de un archivo CSV.
      *
@@ -123,6 +162,67 @@ public class ArchivoManager {
         } catch (IOException e) {
 
             System.out.println("Error al cargar usuarios.");
+            e.printStackTrace();
+        }
+
+        return usuarios;
+    }
+
+    /**
+     * Carga usuarios desde una ruta personalizada.
+     *
+     * @param ruta Ruta del archivo CSV
+     * @return Lista de usuarios recuperados
+     */
+    public static List<UsuarioCasino> cargarUsuariosDesde(String ruta) {
+
+        List<UsuarioCasino> usuarios = new ArrayList<>();
+
+        File archivo = new File(ruta);
+
+        if (!archivo.exists()) {
+            return usuarios;
+        }
+
+        try (BufferedReader reader =
+                     new BufferedReader(new FileReader(ruta))) {
+
+            String linea;
+
+            while ((linea = reader.readLine()) != null) {
+
+                String[] datos = linea.split(",");
+
+                String notas = "";
+                String servicios = "";
+                String experiencia = "";
+                String horario = "";
+
+                if (datos.length > 5) experiencia = datos[5];
+                if (datos.length > 6) horario     = datos[6];
+                if (datos.length > 7) servicios   = datos[7];
+                if (datos.length > 8) notas       = datos[8];
+
+                UsuarioCasino usuario = new UsuarioCasino(
+                        Integer.parseInt(datos[0]),
+                        datos[1],
+                        datos[2],
+                        Integer.parseInt(datos[3]),
+                        datos[4],
+                        experiencia,
+                        horario,
+                        servicios,
+                        notas
+                );
+
+                usuarios.add(usuario);
+            }
+
+            System.out.println("Usuarios cargados desde: " + ruta);
+
+        } catch (IOException e) {
+
+            System.out.println("Error al cargar archivo.");
             e.printStackTrace();
         }
 

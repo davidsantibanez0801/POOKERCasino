@@ -174,6 +174,29 @@ public class UsuarioController {
     }
 
     /**
+     * Carga usuarios desde una ruta personalizada
+     * elegida por el usuario con JFileChooser.
+     *
+     * @param ruta Ruta del archivo CSV
+     */
+    public void cargarDesde(String ruta) {
+
+        List<UsuarioCasino> cargados =
+                ArchivoManager.cargarUsuariosDesde(ruta);
+
+        listaUsuarios.clear();
+        listaUsuarios.addAll(cargados);
+
+        if (!listaUsuarios.isEmpty()) {
+            idActual = listaUsuarios
+                    .get(listaUsuarios.size() - 1)
+                    .getId() + 1;
+        } else {
+            idActual = 1;
+        }
+    }
+
+    /**
      * Guarda los usuarios en el archivo.
      * Útil para llamar al cerrar la aplicación.
      */
